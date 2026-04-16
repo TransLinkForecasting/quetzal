@@ -1,6 +1,8 @@
 import json
 import os
 import shutil
+import subprocess
+import sys
 import time
 import uuid
 from subprocess import Popen
@@ -40,9 +42,9 @@ def parallel_call_jobs(jobs, mode='w', leave=False, workers=1, sleep=1, raise_er
         with open(stdout_file, mode) as stdout:
             with open(stderr_file, mode) as stderr:
                 if type(arg) == tuple:
-                    command_list = ['python', file] + list(arg)
+                    command_list = [sys.executable, file] + list(arg)
                 else:
-                    command_list = ['python', file] + [arg]
+                    command_list = [sys.executable, file] + [arg]
                 # my_env = os.environ
                 # my_env["PYTHONPATH"] = os.pathsep.join(sys.path)[1:]
                 popens[i] = Popen(
@@ -96,7 +98,7 @@ def parallel_call_notebooks(
         file = notebook.replace('.ipynb', '.py')
         files.append(file)
         if not os.path.exists(file):
-            os.system('jupyter nbconvert --to python %s' % notebook)
+            subprocess.run([sys.executable, '-m', 'jupyter', 'nbconvert', '--to', 'python', notebook])
         if not os.path.exists(file):  # jupyter nb convert failed, for instance, jupyter is not recognized
             convertNotebook(notebook, file)
             if freeze_support:
@@ -155,7 +157,7 @@ def parallel_call_notebook(
 
     start = time.time()
     jobs = []
-    os.system('jupyter nbconvert --to python %s' % notebook)
+    subprocess.run([sys.executable, '-m', 'jupyter', 'nbconvert', '--to', 'python', notebook])
     file = notebook.replace('.ipynb', '.py')
     if not os.path.exists(file):  # jupyter nb convert failed, for instance, jupyter is not recognized
         convertNotebook(notebook, file)
@@ -208,7 +210,7 @@ def parallel_call_python(
         # print(i, arg)
         with open(stdout_path.replace('.txt', '_' + suffix + '.txt'), mode) as stdout:
             with open(stderr_path.replace('.txt', '_' + suffix + '.txt'), mode) as stderr:
-                popens[i] = Popen(['python', file, arg], stdout=stdout, stderr=stderr)
+                popens[i] = Popen([sys.executable, file, arg], stdout=stdout, stderr=stderr)
                 if (i + 1) % workers == 0 or (i + 1) == len(arg_list):
                     # print('waiting')
                     for p in popens.values():

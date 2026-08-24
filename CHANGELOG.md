@@ -1,9 +1,61 @@
-## [3.7.0] (2026-05-29 2026-06-19)
+## [3.8.6] (2026-08-21)
+
+## Changes
+
+* Add 'obeserved' argument to groupby_weighted average method
+
+## [3.8.5] (2026-08-21)
+
+## Changes
+
+* Remove max version dependency of Jupyter Notebook
+
+## [3.8.4] (2026-08-20)
+
 ## Features
+
+* quenedi to_zip function can now export dict as json too.
+
+## revert
+
+* analysis_pt_time: remove self.links["waiting_time"].astype(float)  as its not always present in links. this should be done in the model before calling the method.
+
+## [3.8.3] (2026-08-13)
+
+revert building pipeline to poetry as some files are missing with uv backend
+
+## [3.8.2] (2026-08-13)
+
+## Features
+
+* can read parameters as csv instead of xlsx (@LinSiyu-TL)
+* add uv installation support and fixed dependencies (@bwentl)
+
+## Changes
+
+* road_pathfinder (normal msa one): change Lut (dict from nodes tuple to links) to a flat arr such that lut[(node_a * n_node) + node_b] = link_index. this improve memory usage for large network [#157](https://github.com/systragroup/quetzal/issues/157)
+* publish to pypi with uv instead of poetry and twine (@bwentl)
+
+## [3.8.1] (2026-08-11)
+
+## [3.8.0] (2026-07-22)
+
+3.8.0 tag was not on head, the correct version is 3.8.1
+
+## Features
+
+* Incremental Logit: It is now possible to run the logit as an incremental logit
+* pickup_type and drop_off_type in CSA: Now the Connection Scan Algorithm can use the information on pickup_type and drop_off_type.
+
+## [3.7.0] (2026-05-29 2026-06-19)
+
+## Features
+
 * road_pathfinder: add CompositeTracker object for having a list of trackers in the assignment.
 * road_pathfinder: add TurnTracker object. only work with expanded pathfinder
 
 ## Changes
+
 * road_pathfinder: allow zone-to-zone in the expanded graph.
 * distribute_commons_on_links: can add a seceondary weight: usefull for capacitated assignment
 * analysis_pt_time: add waiting_time_expr= 'headway / 2'. whith this you can specify a 'waiting_time' column.
@@ -11,47 +63,60 @@
 * road_pathfinder: trackers dont get "ab_volumes" as input anymore. created in the tracker (LinkTracker) if needed. not used anymore in the road_pathfinder.
 
 ## bug fixes
+
 * AON RoadPathfinder. uses time_columns and acces_time to do the pathfinder and the car_los time col
-* distribute_commons_on_links: only put boardings on first links and alightings on last link (when there is multiple link merge together to create a common_link, not between trips) 
+* distribute_commons_on_links: only put boardings on first links and alightings on last link (when there is multiple link merge together to create a common_link, not between trips)
 * preparation_footpaths: if length=0: dont do any foothpaths
 * create_common_links:fix bug where time was already in the common_trips. so it was not recomputed on aggregation.
 * split_quenedi_rlinks: return inputed rlinks when nothing to split
 * uses zone_to_road walk_time if avaible in pt_pathfinder and analysis_pt_time
 
 ## [3.6.0] (2026-05-25)
+
 ## Features
+
 * RoadPathfinder: can now compute volumes on zone_to_road with arg: keep_connectors=True with all available methods
 
 ## Changes
+
 * RoadPathfinder: remove ntleg penalty from args (force to 1e9) remove zone_penalty.
 
 ## bug fixes
+
 * analysis_mode_utility: force mode_utility to be a float, route_type as pd.Category was causing issues sometime computing the mode_utility
 
 ## [3.5.1] (2026-05-07)
+
 ## bug fixes
+
 * road_pathfinder: compute relgap with AON flow and not with the BFW flow.
 
 ## Changes
+
 * add jupytext as dev dependencies.
 * remove relgap in roadPathfinder tracker plugins as its not used and already saved in the model attributes.
 
 ## [3.5.0] (2026-05-06)
+
 ## bug fixes
+
 * shift_loadedlinks_alighting fix append on df
 * parallel_call : force the python env of the launcher for the subprocesses.
 
 ## Features
+
 * csa: add csa_pathfinder on stops
 * csa: refactor analysis_paths() to use new on_stop methods
 * analysis_pt_time : added link_time_col='time' argument. so in_vehicle_time can be computed with any col
 
 ## optimization
+
 * Logit: up to 2x faster and uses less memory using  pd.category and numpy.
 
 ## [3.4.1] (2026-04-13)
 
 ## bug fixes
+
 * road_pathfinder: do not force index to string when using expanded_path
 * road_pathfinder: accept turn_penalties on missing links without throwing an error.
 
@@ -81,8 +146,9 @@
 * integrity_fix_nodeset_consistency: skip road_nodes if no road_links in the model.
 
 ## WIP
+
 * engine.fast_utils.py
-* start adding new way to compute paths and store it in LOS using numba, polars, jagged array and pyarrow. 
+* start adding new way to compute paths and store it in LOS using numba, polars, jagged array and pyarrow.
 
 ## [3.3.0] (2026-02-04)
 

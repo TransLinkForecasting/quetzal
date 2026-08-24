@@ -1,6 +1,6 @@
 [project]
 name = "quetzal-transport"
-version = "3.7.0"
+version = "3.8.6"
 description = "modeling library for transport planning"
 authors = [
   { name = "Quentin Chasserieau", email = "qchasserieau@systra.com" }
@@ -50,8 +50,8 @@ dev = [
 ]
 
 [build-system]
-requires = ["setuptools>=68"]
-build-backend = "setuptools.build_meta"
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 packages = [

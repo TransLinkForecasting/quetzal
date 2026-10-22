@@ -1,3 +1,87 @@
+## [FUTURE] (2026-10-22)
+## Changes
+* read_geojson: now parse dtypes and apply them. This fix Boolean field being read as float because of missing values.
+
+## [3.11.0] (2026-10-21)
+## Changes
+* road_pathfinder: uses target per source for increasd performances.
+* road_pathfinder: ntlegs only on access (for early exit with targets)
+* Update fast-dijkstra: can now provide targets per origin in the form of a csr_matrix
+
+## [3.10.3] (2026-10-13)
+## Changes
+* remove targets in road_pathfinder
+
+## [3.10.2] (2026-10-13)
+## Changes
+* fast_dijkstra: add back old version on all targets
+
+## [3.10.1] (2026-10-09)
+## Changes
+* road_pathfinder overall slight optimization. jam_time more parallel friendly and more readable.
+
+## [3.10.0] (2026-10-05)
+
+## Changes
+* Update fast-dijkstra: can now provide targets and a cutoff per origin
+* Mapmatching : uses new fast-dijksta targets to save memory on big network. and cutoff per origin to speedup
+
+## Bug Fix
+* Mapmatching (routing distance was off)
+
+
+## [3.9.5] (2026-10-01)
+## Changes
+* Mapmatching
+  * add simplify to mapmatching on links at 100m.
+  * Routing now use a dijkstra limit.
+  * fix linemerge
+
+
+## [3.9.4] (2026-09-30)
+## Bug Fix
+* Mapmatching last routing element was not ok.also a bug in the very last element that was drop
+
+## [3.9.3] (2026-09-30)
+
+## Changes
+* Nested Logit
+  * Optimize segment_paths method for large los table
+  * Optimize rank_and_filter_paths method for large los table
+
+* Disable TQDM when quetzal-transport runs on AWS
+
+## [3.9.2] (2026-09-30)
+
+## Changes
+
+* MapMatching
+  * for PT links: mapmatch on links geometry and not stops for better results
+  * dijkstra_limit: use 2x max dist between 2 points, and do routing 3 time with max limit = 4x dijkstra limit instead of inf.
+  * Optimisation for faster performance
+
+## [3.9.1] (2026-09-28)
+
+## Bug Fix
+
+* new mapmatching was faulty
+
+## [3.9.0] (2026-09-28)
+
+## Changes
+
+* Mapmatching
+  * only return a list of matched points to road [index,road_id, offset]
+  * new method to have the routing of those matched points (route_mapmatched_points()) This method work on the expanded_graph to make sure the resulting routing uses the mapmatched roads. Its also applied by trip_id once after the multi_mapmatching.
+  * Use fast-dijktra and have the possibility to compute the dijkstra once for all trips (faster). This is not always an option as it required a large amount of memory on big road networks.
+  * uses the link distance for the transition prob (and not acf distance between stops.)
+
+## [3.8.7] (2026-09-16)
+
+## Bug Fix
+
+* Fix specific case in incremental logit when utility goes from U_ref to 0 in the project scenario.
+
 ## [3.8.6] (2026-08-21)
 
 ## Changes

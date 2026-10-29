@@ -13,6 +13,7 @@ from quetzal.engine.road_pathfinder import (
     msa_roadpathfinder,
     expanded_roadpathfinder,
     get_car_los_time,
+    add_zone_to_zone_node,
 )
 from quetzal.engine.msa_trackers.links_tracker import LinksTracker
 from quetzal.engine.sampling import sample_od
@@ -313,7 +314,6 @@ class TransportModel(optimalmodel.OptimalModel, parkridemodel.ParkRideModel):
         if not assign_on_connectors:
             # need to add zone_to_road to time_dict, as they are not return by the roadPathfinder in that case.
             time_dict.update(self.zone_to_road.set_index(['a', 'b'])[access_time].to_dict())
-
         _rlinks = self.road_links.copy()
         _connectors = self.zone_to_road.copy()
 
@@ -339,6 +339,15 @@ class TransportModel(optimalmodel.OptimalModel, parkridemodel.ParkRideModel):
             _rlinks[(seg, 'cost')] = _rlinks.set_index(['a', 'b']).index.map(cost_dict.get)
             _connectors[(seg, 'cost')] = _connectors.set_index(['a', 'b']).index.map(cost_dict.get)
         if return_car_los:
+            to_fix = car_los[car_los['path'].apply(len) <= 2].index
+            if len(to_fix) > 0:  # need to add a node for path being only zone to zone
+                zone_to_zone = _connectors[['a', 'b']]
+                zone_to_zone = zone_to_zone.merge(zone_to_zone, left_on='b', right_on='a').drop(columns=['a_y'])
+                zone_to_zone = zone_to_zone.rename(columns={'a_x': 'origin', 'b_y': 'destination', 'b_x': 'node'})
+                zone_to_zone_dict = zone_to_zone.set_index(['origin', 'destination'])['node'].to_dict()
+                car_los.loc[to_fix, 'path'] = car_los.loc[to_fix, 'path'].apply(
+                    lambda x: add_zone_to_zone_node(x, zone_to_zone_dict)
+                )
             car_los = get_car_los_time(car_los, time_dict)
             self.car_los = car_los
 

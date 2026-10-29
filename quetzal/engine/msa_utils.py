@@ -17,11 +17,11 @@ def get_sparse_volumes(volumes: pd.DataFrame, index: dict[str, int]):
 
     volumes['origin_sparse'] = volumes['origin'].map(zone_index.get)
     # could do this once before to save 100ms/it.
-    volumes['destination_sparse'] = volumes['destination'].apply(index.get)
+    volumes['destination_sparse'] = volumes['destination'].map(index.get)
     return volumes, origins
 
 
-def get_sparse_matrix(edges, index):
+def get_sparse_matrix(edges, index) -> csr_matrix:
     row, col, data = edges.T
     row = np.array(row, dtype=np.int32)
     col = np.array(col, dtype=np.int32)
@@ -35,8 +35,8 @@ def shortest_path(
     index: dict[str, int],
     origins: list[int],
     targets: csr_matrix | None = None,
-    num_cores: int = -1,
     limit=np.inf,
+    num_cores: int = -1,
 ) -> tuple[np.ndarray, np.ndarray]:
     # from  df index(a,b) and weight col, return predecessor.
     edges = links[weight_cols].sum(axis=1).reset_index().values  # build the edges again, useless
@@ -50,8 +50,9 @@ def shortest_path(
 
 # convert string to Polars expression
 def pl_expr_from_str(expr_str: str) -> pl.Expr:
-    tokens = set(re.findall(r'[A-Za-z_]\w*', expr_str))
-    for tok in tokens:
+    regex = r'\b[A-Za-z_]\w*\b(?!\s*[=(])'
+    variables = set(re.findall(regex, expr_str))
+    for tok in variables:
         expr_str = re.sub(rf'\b{tok}\b', f'pl.col("{tok}")', expr_str)
     return eval(expr_str, {'pl': pl})
 
@@ -73,7 +74,7 @@ def jam_time(plinks: pl.DataFrame, vdf, flow: str = 'flow', time_col: str = 'tim
     expr_list = []
     for key, str_expression in vdf.items():
         str_expression = str_expression.replace('flow', flow).replace('time', time_col)
-        expr = pl.when(pl.col('vdf') == key).then(pl_expr_from_str(str_expression)).otherwise(0).alias(key)
+        expr = pl.when(pl.col('vdf') == key).then(pl_expr_from_str(str_expression)).otherwise(0).alias(str(key))
         expr_list.append(expr)
         # return a numpy array with filled with time_col
     return plinks.select(expr_list).to_numpy().sum(axis=1)
@@ -191,7 +192,7 @@ def get_bfw_auxiliary_flow(links: pd.DataFrame, b: list[float], segments: list[s
     return links
 
 
-def get_derivative(plinks: pl.DataFrame, vdf, cost_functions, segments, h=0.001, **kwargs):
+def get_derivative(plinks: pl.DataFrame, vdf, cost_functions, segments, h=1, **kwargs):
     # get Cost function derivative approximation around flow+-h
     plinks = plinks.with_columns([(pl.col('flow') + h).alias('flow_1'), (pl.col('flow') - h).alias('flow_2')])
     jam_time_1 = jam_time(plinks, vdf=vdf, flow='flow_1', **kwargs)
@@ -203,7 +204,9 @@ def get_derivative(plinks: pl.DataFrame, vdf, cost_functions, segments, h=0.001,
         func = cost_functions.get(seg)
         x1 += apply_segment_cost(plinks, func, 'jam_time_1') * (plinks[str((seg, 'flow'))].to_numpy() + h)
         x2 += apply_segment_cost(plinks, func, 'jam_time_2') * (plinks[str((seg, 'flow'))].to_numpy() - h)
-    return (x1 - x2) / (2 * h)
+
+    derivative = (x1 - x2) / (2 * h)
+    return np.nan_to_num(derivative, nan=0)
 
 
 @nb.njit(locals={'predecessors': nb.int32[:, ::1]}, parallel=True)
